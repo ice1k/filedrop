@@ -1,0 +1,40 @@
+apply plugin: 'java'
+
+group 'com.github.ice1k'
+version '2018.1'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+tasks.withType(JavaCompile) {
+  options.encoding = 'UTF-8'
+}
+
+repositories {
+  mavenCentral()
+  flatDir {
+    dirs 'libs'
+  }
+}
+
+sourceSets {
+  main.java.srcDirs = [ ]
+  main.resources.srcDirs = [ ]
+  test.java.srcDirs = [ ]
+}
+
+configurations {
+  library
+}
+
+jar {
+  from {
+    configurations.library.collect { it.isDirectory() ? it : zipTree(it) }
+  }
+}
+
+dependencies {
+  library name: 'filedrop'
+  configurations.compile.extendsFrom configurations.library
+}
+
