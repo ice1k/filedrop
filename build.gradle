@@ -1,20 +1,15 @@
+plugins { id "com.jfrog.bintray" version "1.7.3" }
+
 apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
-group 'com.github.ice1k'
+group 'net.iharder.dnd'
 version '2018.1'
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-tasks.withType(JavaCompile) {
-  options.encoding = 'UTF-8'
-}
 
 repositories {
   mavenCentral()
-  flatDir {
-    dirs 'libs'
-  }
+  flatDir { dirs 'libs' }
 }
 
 sourceSets {
@@ -23,14 +18,43 @@ sourceSets {
   test.java.srcDirs = [ ]
 }
 
-configurations {
-  library
+configurations { library }
+
+jar { from { configurations.library.collect { it.isDirectory() ? it : zipTree(it) } } }
+
+bintray {
+	user = "ice1000"
+	key = findProperty("key").toString()
+	configurations = ["archives"]
+	pkg {
+		name = project.name
+		repo = "ice1000"
+		githubRepo = "ice1k/filedrop"
+		publicDownloadNumbers = true
+		vcsUrl = "https://github.com/ice1k/filedrop.git"
+		version {
+			name = project.version
+			vcsTag = "v$project.version"
+			websiteUrl = "https://github.com/ice1k/filedrop/releases/tag/$vcsTag"
+		}
+	}
 }
 
-jar {
-  from {
-    configurations.library.collect { it.isDirectory() ? it : zipTree(it) }
-  }
+publishing {
+	publications {
+		mavenJava(MavenPublication.class) {
+			from components.java
+			groupId = group
+			artifactId = project.name
+			version = project.version
+			pom.withXml {
+				def root = asNode()
+				root.appendNode("description", "A FileDrop lib from SourceForge that I've already forgotten which page did I find it")
+				root.appendNode("name", project.name)
+				root.children().last()
+			}
+		}
+	}
 }
 
 dependencies {
